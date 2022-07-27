@@ -97,7 +97,7 @@ function updateChart(yearLimit) {
   yAxisGroup.call(yAxis);
 
   // Data binding
-  let elements = elementGroup.selectAll("g").data(data);
+  let elements = elementGroup.selectAll("rect").data(data);
 
   elements
     .enter()
@@ -113,14 +113,25 @@ function updateChart(yearLimit) {
     .attr("width", (d) => x(d.values.length));
 
   elements
-    .enter()
-    .append("text")
-    .attr("class", "metooltiptext")
-    .text((d) => d.values.length)
-    .attr("x", (d) => x(d.values.length) - 20)
-    .attr("y", (d) => y(d.key) + 28)
-    .attr("text-anchor", "middle")
-    .attr("style:fill", "white");
+    .attr("x", 0)
+    .attr("y", (d) => y(d.key))
+    .attr("height", y.bandwidth())
+    .attr("fill", (d) =>
+      d.values.length == maxWinners ? "crimson" : "cadetblue"
+    )
+    .transition()
+    .duration(300)
+    .attr("width", (d) => x(d.values.length));
+
+  // elements
+  //   .enter()
+  //   .append("text")
+  //   .attr("class", "metooltiptext")
+  //   .text((d) => d.values.length)
+  //   .attr("x", (d) => x(d.values.length) - 20)
+  //   .attr("y", (d) => y(d.key) + 28)
+  //   .attr("text-anchor", "middle")
+  //   .attr("style:fill", "white");
 
   elements.exit().remove();
 }
