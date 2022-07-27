@@ -99,15 +99,11 @@ function updateChart(yearLimit) {
 
   // Data binding
   let elements = elementGroup.selectAll("g").data(data);
-  elements.enter().append("g").call(addBar);
 
-  elements.exit().remove();
-}
+  elements.attr("class", "metooltip"); //He tenido que modificar el tooltip para que no me lo sobrescriba el de bootstrap del slider
 
-function addBar(group) {
-  group.attr("class", "metooltip"); //He tenido que modificar el tooltip para que no me lo sobrescriba el de bootstrap del slider
-
-  group
+  elements
+    .enter()
     .append("rect")
     .attr("x", 0)
     .attr("y", (d) => y(d.key))
@@ -117,7 +113,8 @@ function addBar(group) {
       d.values.length == maxWinners ? "crimson" : "cadetblue"
     );
 
-  group
+  elements
+    .enter()
     .append("text")
     .attr("class", "metooltiptext")
     .text((d) => d.values.length)
@@ -125,6 +122,8 @@ function addBar(group) {
     .attr("y", (d) => y(d.key) + 28)
     .attr("text-anchor", "middle")
     .attr("style:fill", "white");
+
+  elements.exit().remove();
 }
 
 // CHART END
