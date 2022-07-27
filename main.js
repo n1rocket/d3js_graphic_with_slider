@@ -102,14 +102,15 @@ function updateChart(yearLimit) {
   elements
     .enter()
     .append("rect")
-    .attr("class", "metooltip") //He tenido que modificar el tooltip para que no me lo sobrescriba el de bootstrap del slider
     .attr("x", 0)
     .attr("y", (d) => y(d.key))
     .attr("height", y.bandwidth())
-    .attr("width", (d) => x(d.values.length))
     .attr("fill", (d) =>
       d.values.length == maxWinners ? "crimson" : "cadetblue"
-    );
+    )
+    .transition()
+    .duration(300)
+    .attr("width", (d) => x(d.values.length));
 
   elements
     .enter()
