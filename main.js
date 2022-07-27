@@ -7,7 +7,6 @@ const margin = {
   left: 60,
   right: 10,
 };
-let maxWinners = 0;
 let dataOrig;
 
 // Defino SVG y Grupos:
@@ -87,7 +86,7 @@ function updateChart(yearLimit) {
 
   console.log(data);
 
-  maxWinners = d3.max(data.map((d) => d.values.length));
+  const maxWinners = d3.max(data.map((d) => d.values.length));
 
   //Dominio
   x.domain([0, maxWinners]);
@@ -100,11 +99,10 @@ function updateChart(yearLimit) {
   // Data binding
   let elements = elementGroup.selectAll("g").data(data);
 
-  elements.attr("class", "metooltip"); //He tenido que modificar el tooltip para que no me lo sobrescriba el de bootstrap del slider
-
   elements
     .enter()
     .append("rect")
+    .attr("class", "metooltip") //He tenido que modificar el tooltip para que no me lo sobrescriba el de bootstrap del slider
     .attr("x", 0)
     .attr("y", (d) => y(d.key))
     .attr("height", y.bandwidth())
@@ -142,6 +140,7 @@ function slider(years) {
     .default(years[years.length - 1]) // punto inicio de la marca
     .on("onchange", (val) => {
       updateChart(val);
+      d3.select("p#value-time").text(sliderTime.value());
     });
 
   var gTime = d3
