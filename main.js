@@ -7,6 +7,8 @@ const margin = {
   left: 60,
   right: 10,
 };
+let maxWinners = 0;
+let years;
 
 // Defino SVG y Grupos:
 const svg = d3
@@ -43,50 +45,73 @@ const y = d3
 //Definir ejes
 const xAxisTicks = x.ticks().filter((tick) => Number.isInteger(tick));
 
-const xAxis = d3
-  .axisBottom()
-  .scale(x)
-  .ticks(4)
-  //.tickValues(xAxisTicks)
-  .tickFormat(d3.format("d"));
+const xAxis = d3.axisBottom().scale(x).ticks(4).tickFormat(d3.format("d"));
 
 const yAxis = d3.axisLeft().scale(y);
 
-d3.csv("data.csv").then((dataOrig) => {
-  console.log(dataOrig);
+loadData();
 
-  //Transformar datos (se agrupan por el campo ganador para poder realizar el conteo)
-  let data = d3
-    .nest()
-    .key((d) => d.winner)
-    .sortKeys(d3.ascending) // Ordeno la información alfabéticamente
-    .entries(dataOrig);
+function loadData(yearLimit) {
+  d3.csv("data.csv").then((dataOrig) => {
+    console.log(dataOrig);
 
-  //Eliminamos los años que no hubo ganadores
-  data = data.filter((d) => {
-    return d.key != "";
+    //Transformar datos (se agrupan por el campo ganador para poder realizar el conteo)
+    dataOrig.forEach((d) => {
+      d.year = +d.year;
+    });
+
+    //Eliminamos los años límites
+    if (yearLimit != undefined) {
+      dataOrig = dataOrig.filter((d) => d.year <= yearLimit);
+    }
+
+    let data = d3
+      .nest()
+      .key((d) => d.winner)
+      .sortKeys(d3.ascending) // Ordeno la información alfabéticamente
+      .entries(dataOrig);
+
+    //Eliminamos los años que no hubo ganadores
+    data = data.filter((d) => {
+      return d.key != "";
+    });
+    console.log(data);
+
+    maxWinners = d3.max(data.map((d) => d.values.length));
+
+    console.log("maxWinners: ", maxWinners);
+
+    //Dominio
+    x.domain([0, maxWinners]);
+    y.domain(data.map((d) => d.key));
+
+    console.log(
+      "data.map((d) => d.key): ",
+      data.map((d) => d.key)
+    );
+
+    // Dibujar
+    xAxisGroup.call(xAxis);
+    yAxisGroup.call(yAxis);
+
+    // Data binding
+    let elements = elementGroup.selectAll("g").data(data);
+    elements.enter().append("g").call(addBar);
+
+    elements.exit().remove();
+
+    years = dataOrig.map((d) => d.year);
+
+    if (yearLimit == undefined) {
+      slider();
+    }
   });
-  console.log(data);
-
-  maxWinners = d3.max(data.map((d) => d.values.length));
-
-  //Dominio
-  x.domain([0, maxWinners]);
-  y.domain(data.map((d) => d.key));
-
-  // Dibujar
-  xAxisGroup.call(xAxis);
-  yAxisGroup.call(yAxis);
-
-  // Data binding
-  let elements = elementGroup.selectAll("g").data(data);
-  elements.enter().append("g").call(addBar);
-});
+}
 
 function addBar(group) {
   group.attr("class", "metooltip"); //He tenido que modificar el tooltip para que no me lo sobrescriba el de bootstrap del slider
 
-  let rect = group
+  group
     .append("rect")
     .attr("x", 0)
     .attr("y", (d) => y(d.key))
@@ -110,6 +135,8 @@ function addBar(group) {
 
 // slider:
 function slider() {
+  console.log(years);
+
   var sliderTime = d3
     .sliderBottom()
     .min(d3.min(years)) // rango años
@@ -119,8 +146,7 @@ function slider() {
     .ticks(years.length)
     .default(years[years.length - 1]) // punto inicio de la marca
     .on("onchange", (val) => {
-      console.log("La función aún no está conectada con la gráfica");
-      // conectar con la gráfica aquí
+      loadData(val);
     });
 
   var gTime = d3
