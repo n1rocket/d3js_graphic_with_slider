@@ -8,18 +8,20 @@ const margin = {
   right: 10,
 };
 let dataOrig;
+let maxWinners;
 
 // Defino SVG y Grupos:
 const svg = d3
   .select("div#chart")
   .append("svg")
+  .attr("class", "svg")
   .attr("width", width)
   .attr("height", height);
 
 //Aplicamos una transformación para mover la posición de todo el grupo ya que quedaba pegado a la izquierda
 const elementGroup = svg
   .append("g")
-  .attr("id", "elementGroup")
+  .attr("class", "svg-content")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
 const axisGroup = svg.append("g").attr("id", "axisGroup");
@@ -86,7 +88,7 @@ function updateChart(yearLimit) {
 
   console.log(data);
 
-  const maxWinners = d3.max(data.map((d) => d.values.length));
+  maxWinners = d3.max(data.map((d) => d.values.length));
 
   //Dominio
   x.domain([0, maxWinners]);
@@ -97,11 +99,25 @@ function updateChart(yearLimit) {
   yAxisGroup.call(yAxis);
 
   // Data binding
-  let elements = elementGroup.selectAll("rect").data(data);
+  let elements = d3
+    .select(".svg")
+    .select(".svg-content")
+    .selectAll("g.group-content")
+    .data(data);
 
-  elements
+  //elementGroup.selectAll("g.group-content").data(data);
+
+  elementsEnter = elements
     .enter()
-    .append("rect")
+    .append("svg:g")
+    .attr("class", "group-content metooltip");
+
+  //elementsEnter.attr("class", (d) => "metooltip");
+
+  elementsEnter
+    .append("svg:g")
+    .attr("class", "rect-content")
+    .append("svg:rect")
     .attr("x", 0)
     .attr("y", (d) => y(d.key))
     .attr("height", y.bandwidth())
@@ -113,6 +129,8 @@ function updateChart(yearLimit) {
     .attr("width", (d) => x(d.values.length));
 
   elements
+    .select(".rect-content")
+    .select("rect")
     .attr("x", 0)
     .attr("y", (d) => y(d.key))
     .attr("height", y.bandwidth())
@@ -123,15 +141,28 @@ function updateChart(yearLimit) {
     .duration(300)
     .attr("width", (d) => x(d.values.length));
 
-  // elements
-  //   .enter()
-  //   .append("text")
-  //   .attr("class", "metooltiptext")
-  //   .text((d) => d.values.length)
-  //   .attr("x", (d) => x(d.values.length) - 20)
-  //   .attr("y", (d) => y(d.key) + 28)
-  //   .attr("text-anchor", "middle")
-  //   .attr("style:fill", "white");
+  elementsEnter
+    .append("svg:g")
+    .attr("class", "text-content metooltiptext")
+    .append("text")
+    .text((d) => d.values.length)
+    .attr("x", (d) => x(d.values.length) - 20)
+    .attr("y", (d) => {
+      console.log(y(d.key));
+
+      return y(d.key) + 5 + y.bandwidth() / 2;
+    })
+    .attr("text-anchor", "middle")
+    .attr("style:fill", "white");
+
+  elements
+    .select(".text-content")
+    .select("text")
+    .text((d) => d.values.length)
+    .attr("x", (d) => x(d.values.length) - 20)
+    .attr("y", (d) => y(d.key) + 5 + y.bandwidth() / 2)
+    .attr("text-anchor", "middle")
+    .attr("style:fill", "white");
 
   elements.exit().remove();
 }
